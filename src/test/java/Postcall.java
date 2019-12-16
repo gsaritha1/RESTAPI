@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,13 +84,16 @@ public class Postcall {
         JsonPath jsonPathEvaluator = res.jsonPath();
         Map rel = (Map) jsonPathEvaluator.getMap("data").get("relationships");
       //  Map rel = (Map) res.jsonPath().getMap("data").get("relationships");
-        List<Map> lineItems = (List<Map>) ((Map) rel.get("line_items"));
+        List<Map> lineItems = (List<Map>) ((Map) rel.get("line_items")).get("data");
         // List<Map> lineItems = (List<Map>) ((Map)rel.get("line_items")).get("data");
-        for (Map lineItem : lineItems) {
-            Map data = (Map) lineItem.get("data");
-            itemID = data.get("id").toString();
-            System.out.println(itemID);
+        ArrayList<String>lineItemIds = new ArrayList<String>();
+        for (Map m : lineItems) {
+            System.out.println("Line item id added in the cart is ::::" + m.get("id"));
+            lineItemIds.add(m.get("id").toString());
         }
+        itemID=lineItemIds.get(1);
+        System.out.println("item id is " +itemID);
+
     }
 
     @Test(priority = 4)
@@ -98,11 +102,10 @@ public class Postcall {
         headers.put("content_type","application/json");
         headers.put("Authorization",authToken);
 
-
         Response res = given()
                 .headers(headers)
                 .when()
-                .post("https://spree-vapasi-prod.herokuapp.com/api/v2/storefront/cart/remove_line_item/"+itemID);
+                .post("https://spree-vapasi-prod.herokuapp.com/api/v2/storefront/cart/remove_line_item/"+itemID.toString());
         Assert.assertEquals(res.statusCode(),200);
     }
 
