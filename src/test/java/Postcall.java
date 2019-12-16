@@ -1,21 +1,19 @@
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
-import org.apache.http.HttpStatus;
 import org.junit.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.awt.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
 
 public class Postcall {
 
     public static String authToken;
+    public static String itemID;
     @BeforeClass
     public void auth_token() {
         Response res = given()
@@ -70,51 +68,30 @@ public class Postcall {
 
     @Test(priority = 3)
     public void ViewCart() {
-        Map<String, String> headers  = new HashMap<String,String>();
-        headers.put("content_type","application/json");
-        headers.put("Authorization",authToken);
+        // Object itemid;
+        Map<String, String> headers = new HashMap<String, String>();
+        headers.put("content_type", "application/json");
+        headers.put("Authorization", authToken);
 
         Response res = given()
                 .headers(headers)
                 .when()
                 .post("https://spree-vapasi-prod.herokuapp.com/api/v2/storefront/cart");
-        Assert.assertEquals(res.statusCode(),201);
+        Assert.assertEquals(res.statusCode(), 201);
         System.out.println(res.prettyPrint());
 
         JsonPath jsonPathEvaluator = res.jsonPath();
-      //  System.out.println("currency: \n"+ jsonPathEvaluator.get("currency"));
-
-        List<Map> products = jsonPathEvaluator.getList("data");
-
-        for(int i=0; i<products.size();i++) {
-            System.out.println(products.get(i));
+        Map rel = (Map) jsonPathEvaluator.getMap("data").get("relationships");
+      //  Map rel = (Map) res.jsonPath().getMap("data").get("relationships");
+        List<Map> lineItems = (List<Map>) ((Map) rel.get("line_items"));
+        // List<Map> lineItems = (List<Map>) ((Map)rel.get("line_items")).get("data");
+        for (Map lineItem : lineItems) {
+            Map data = (Map) lineItem.get("data");
+            itemID = data.get("id").toString();
+            System.out.println(itemID);
         }
-   //     List<Map> relation = products.g
-     //   System.out.println("Relationships: \n"+ jsonPathEvaluator.get("products"));
-       // for (Map product : products) {
-         //   Map data = (Map) product.get("line_items");
-           // System.out.println("the ID number is "+data.get("id"));
-            //  Assert.assertTrue(attributes.containsValue("USD"));
-           // Assert.assertTrue(attributes.get(("currency")).equals("USD"));
-            // System.out.println("currency is ");
+    }
 
-        }
-
-        /*  "line_items": {
-                "data": [
-                    {
-                        "id": "414",
-                        "type": "line_item"
-                    },
-                    {
-                        "id": "417",
-                        "type": "line_item"
-                    },
-                    {
-                        "id": "418",
-                        "type": "line_item"
-                    }*/
-    //}
     @Test(priority = 4)
     public void delete_Item() {
         Map<String, String> headers  = new HashMap<String,String>();
@@ -125,7 +102,7 @@ public class Postcall {
         Response res = given()
                 .headers(headers)
                 .when()
-                .post("https://spree-vapasi-prod.herokuapp.com/api/v2/storefront/cart/remove_line_item/378");
+                .post("https://spree-vapasi-prod.herokuapp.com/api/v2/storefront/cart/remove_line_item/"+itemID);
         Assert.assertEquals(res.statusCode(),200);
     }
 
