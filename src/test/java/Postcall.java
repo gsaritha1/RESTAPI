@@ -105,7 +105,7 @@ public class Postcall {
         Response res = given()
                 .headers(headers)
                 .when()
-                .post("https://spree-vapasi-prod.herokuapp.com/api/v2/storefront/cart/remove_line_item/"+itemID.toString());
+                .delete("https://spree-vapasi-prod.herokuapp.com/api/v2/storefront/cart/remove_line_item/"+itemID.toString());
         Assert.assertEquals(res.statusCode(),200);
     }
 
